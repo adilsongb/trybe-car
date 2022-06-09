@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS travel (
   passenger_id INT NOT NULL,
   driver_id INT,
   starting_point VARCHAR(100),
-  request_time TIMESTAMP DEFAULT CURRENT_TIME,
+  request_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   status_travel VARCHAR(100),
   FOREIGN KEY (passenger_id) REFERENCES passenger(id),
   FOREIGN KEY (driver_id) REFERENCES driver(id)
