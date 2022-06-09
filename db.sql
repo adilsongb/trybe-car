@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS travel (
   driver_id INT,
   starting_point VARCHAR(100),
   request_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  status_travel VARCHAR(100),
+  status_travel VARCHAR(100) DEFAULT 'aguardando_motorista',
   FOREIGN KEY (passenger_id) REFERENCES passenger(id),
   FOREIGN KEY (driver_id) REFERENCES driver(id)
 );
@@ -43,6 +43,3 @@ INSERT INTO driver (name_driver, license_plate, car_model, car_color) VALUES
 INSERT INTO passenger (name_passenger, email, telephone) VALUES
 ('Adilson Gabriel', 'adilsongb.rabelo@gmail.com', '(94) 99476-4523'),
 ('Laura Fumagalli', 'laura.fumaga@gmail.com', '(51) 97384-2612');
-
-ALTER TABLE travel
-ALTER COLUMN request_time TIMESTAMP(); 
