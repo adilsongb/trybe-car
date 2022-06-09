@@ -9,11 +9,17 @@ app.use(express.json());
 
 const PORT = 3001;
 
-app.post('/travel', rescue(async (req, res) => {
-  const { passengerId, driverId, startingPoint } = req.body;
+app.post('/passenger/travel', rescue(async (req, res) => {
+  const { passengerId, startingPoint, stopsTravel } = req.body;
 
-  await TravelModel
-    .createTravel(passengerId, driverId, startingPoint);
+  const newTravelId = await TravelModel
+    .createTravel(passengerId, startingPoint);
+
+  await Promise.all(
+    stopsTravel
+      .map((stopAddress, index) =>
+        TravelModel.createStopTravel(newTravelId, stopAddress, (index + 1)))
+  );
 
   res.status(200).json({ message: 'trip requested successfully' });
 }));
