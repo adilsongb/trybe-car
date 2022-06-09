@@ -104,7 +104,14 @@ const getAllTravelsForPessenger = async (passengerId) => {
     [passengerId],
   );
 
-  return travels;
+  return travels.map((travel) => ({
+    id: travel.id,
+    passengerId: travel.passenger_id,
+    driverId: travel.driver_id,
+    startingPoint: travel.starting_point,
+    requestTime: travel.request_time,
+    statusTravel: travel.status_travel
+  }));
 };
 
 const getAllTravelsForDriver = async (driverId) => {
@@ -186,4 +193,116 @@ app.post('/passenger/travel', rescue(async (req, res) => {
 app.use(error);
 
 app.listen(PORT, () => console.log(`listening on port ${PORT}`));
+```
+
+### Parte 2
+
+- Movemos todas as ações relacionadas ao model (do `index.js`) para a camada de services:
+
+`./services/travelService.js`
+
+```js
+const TravelModel = require('../models/Travel');
+
+const createTravel = async (passengerId, startingPoint, stopsTravel) => {
+  const newTravelId = await TravelModel
+    .createTravel(passengerId, startingPoint);
+
+  await Promise.all(
+    stopsTravel
+      .map((stopAddress, index) =>
+        TravelModel.createStopTravel(newTravelId, stopAddress, (index + 1)))
+  );
+}
+
+module.exports = {
+  createTravel
+};
+```
+
+- No `index.js`, adaptamos para usar a camada de serviço:
+
+```js
+const express = require('express')
+const rescue = require('express-rescue');
+// Removemos a importação do model
+// const TravelModel = require('./models/Travel');
+const TravelService = require('./services/travelService');
+const { error } = require('./middlewares/error');
+
+const app = express();
+
+app.use(express.json());
+
+const PORT = 3001;
+
+app.post('/passenger/travel', rescue(async (req, res) => {
+  const { passengerId, startingPoint, stopsTravel } = req.body;
+
+  await TravelService.createTravel(passengerId, startingPoint, stopsTravel);
+
+  res.status(200).json({ message: 'trip requested successfully' });
+}));
+
+app.use(error);
+
+app.listen(PORT, () => console.log(`listening on port ${PORT}`));
+```
+
+- Implementamos a seguinte regra de negócio na camada de serviço:
+
+> Verificar se já existe uma viagem com o status `em_viagem` ou `aguardando_motorista` ou `motorista_a_caminho` vinculado ao cliente. Se houver a viagem não pode ser solicitada. Caso não exista, s viagem deve ser cadastrada e vinculado ao cliente com o status 'aguardando_motorista`. Todos os endereços de parada devem ser cadastrados na tabela `Paradas` e vinculados a viagem cadastrada.
+
+`./services/travelService.js`
+
+```js
+const TravelModel = require('../models/Travel');
+
+const createTravel = async (passengerId, startingPoint, stopsTravel) => {
+  // Pegamos todas as viagens relacionadas ao passageiro da requisição 
+  const travelsByPassenger = await TravelModel.getAllTravelsForPessenger(passengerId); 
+
+  // Verificamos se há alguma viagem em andamento
+  const travelInProgress = travelsByPassenger.some((travel) => {
+    if (travel.statusTravel === 'aguardando_motorista') return true;
+    if (travel.statusTravel === 'motorista_a_caminho') return true;
+    if (travel.statusTravel === 'em_viagem') return true;
+    return false;
+  })
+
+  // Se houver alguma viagem do passageiro em andamento, lançamos um erro.
+  // Esse erro será tratado pelo nosso middleware de erro.
+  if (travelInProgress)
+    throw { type: 'TRAVEL_IN_PROGRESS' }
+
+  // Se tudo estiver correto com a regra de negócio, então a viagem será criada
+  const newTravelId = await TravelModel
+    .createTravel(passengerId, startingPoint);
+
+  await Promise.all(
+    stopsTravel
+      .map((stopAddress, index) =>
+        TravelModel.createStopTravel(newTravelId, stopAddress, (index + 1)))
+  );
+}
+
+module.exports = {
+  createTravel
+};
+```
+
+- Adequamos o middleware de erro para tratar os erros da regra de negócio:
+
+`./middlewares/error.js`
+
+```js
+const error = (err, _req, res, _next) => {
+  if (err.type === 'TRAVEL_IN_PROGRESS') {
+    return res.status(400).json({ message: 'Há uma viagem em progresso!' });
+  }
+
+  res.status(500).json({ message: 'Erro interno do servidor' });
+};
+
+module.exports = { error };
 ```

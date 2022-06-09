@@ -6,7 +6,14 @@ const getAllTravelsForPessenger = async (passengerId) => {
     [passengerId],
   );
 
-  return travels;
+  return travels.map((travel) => ({
+    id: travel.id,
+    passengerId: travel.passenger_id,
+    driverId: travel.driver_id,
+    startingPoint: travel.starting_point,
+    requestTime: travel.request_time,
+    statusTravel: travel.status_travel
+  }));
 };
 
 const getAllTravelsForDriver = async (driverId) => {
