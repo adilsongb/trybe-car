@@ -22,9 +22,9 @@ describe('Solicita uma nova viagem', () => {
       TravelModel.getAllTravelsForPessenger.restore();
     });
 
-    it('É lançado um erro', async () => {
+    it.only('É lançado um erro', async () => {
       const response = await TravelService.createTravel(newTravelRequest);
-      expect(response).to.throw();
+      expect(response).to.throw('TRAVEL_IN_PROGRESS');
     });
   });
 });
