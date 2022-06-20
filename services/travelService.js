@@ -11,7 +11,7 @@ const createTravel = async (passengerId, startingPoint, stopsTravel) => {
   })
 
   if (travelInProgress)
-    throw new Error('TRAVEL_IN_PROGRESS');
+   return 'TRAVEL_IN_PROGRESS';
 
   const newTravelId = await TravelModel
     .createTravel(passengerId, startingPoint);

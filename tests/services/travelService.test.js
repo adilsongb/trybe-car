@@ -23,8 +23,8 @@ describe('Solicita uma nova viagem', () => {
     });
 
     it.only('É lançado um erro', async () => {
-      const response = await TravelService.createTravel(newTravelRequest);
-      expect(response).to.throw('TRAVEL_IN_PROGRESS');
+      const response = await TravelService.createTravel('1', 'Rua teotonio vilela', ['Rua gonsalve dias', 'Rua do emirante']);
+      expect(response).to.equal('TRAVEL_IN_PROGRESS');
     });
   });
 });
