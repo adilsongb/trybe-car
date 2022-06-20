@@ -1,5 +1,5 @@
 const error = (err, _req, res, _next) => {
-	if (err.type === 'TRAVEL_IN_PROGRESS') {
+	if (err.message === 'TRAVEL_IN_PROGRESS') {
 		return res.status(400).json({ message: 'Há uma viagem em progresso!' });
 	}
 

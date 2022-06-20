@@ -12,7 +12,11 @@ const PORT = 3001;
 app.post('/passenger/travel', rescue(async (req, res) => {
   const { passengerId, startingPoint, stopsTravel } = req.body;
 
-  await TravelService.createTravel(passengerId, startingPoint, stopsTravel);
+  const response = await TravelService.createTravel(passengerId, startingPoint, stopsTravel);
+
+  if (response) {
+    throw new Error(response);
+  }
 
   res.status(200).json({ message: 'trip requested successfully' });
 }));
