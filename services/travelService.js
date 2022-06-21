@@ -8,10 +8,9 @@ const createTravel = async (passengerId, startingPoint, stopsTravel) => {
     if (travel.statusTravel === 'motorista_a_caminho') return true;
     if (travel.statusTravel === 'em_viagem') return true;
     return false;
-  })
+  });
 
-  if (travelInProgress)
-   return 'TRAVEL_IN_PROGRESS';
+  if (travelInProgress) return 'TRAVEL_IN_PROGRESS';
 
   const newTravelId = await TravelModel
     .createTravel(passengerId, startingPoint);
@@ -21,8 +20,10 @@ const createTravel = async (passengerId, startingPoint, stopsTravel) => {
       .map((stopAddress, index) =>
         TravelModel.createStopTravel(newTravelId, stopAddress, (index + 1)))
   );
-}
+
+  return true;
+};
 
 module.exports = {
-  createTravel
+  createTravel,
 };

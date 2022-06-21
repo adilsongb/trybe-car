@@ -14,7 +14,7 @@ app.post('/passenger/travel', rescue(async (req, res) => {
 
   const response = await TravelService.createTravel(passengerId, startingPoint, stopsTravel);
 
-  if (response) {
+  if (response.message) {
     throw new Error(response);
   }
 
